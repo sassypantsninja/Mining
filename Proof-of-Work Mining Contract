@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract ProofOfWorkCoin is ERC20, Ownable {
+    uint256 public difficulty;
+    uint256 public reward;
+    mapping(address => uint256) public nonces;
+
+    constructor(uint256 initialSupply, uint256 _difficulty, uint256 _reward) ERC20("ProofOfWorkCoin", "POWC") {
+        _mint(msg.sender, initialSupply);
+        difficulty = _difficulty;
+        reward = _reward;
+    }
+
+    function mine(uint256 nonce, bytes32 challengeDigest) public {
+        bytes32 digest = keccak256(abi.encodePacked(msg.sender, nonce, block.timestamp));
+        require(digest < challengeDigest, "Challenge not met");
+
+        _mint(msg.sender, reward);
+        nonces[msg.sender] = nonce;
+    }
+
+    function setDifficulty(uint256 _difficulty) public onlyOwner {
+        difficulty = _difficulty;
+    }
+
+    function setReward(uint256 _reward) public onlyOwner {
+        reward = _reward;
+    }
+}
